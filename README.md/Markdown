@@ -1,14 +1,27 @@
-# Generador de Contraseñas
+# 🔐 Generador de Contraseñas Seguras
 
-Proyecto desarrollado en Python para generar contraseñas seguras.
+## 📌 Descripción
+Proyecto desarrollado en Python que permite generar contraseñas seguras, evaluarlas y guardar un historial.
 
-## 👨‍💻 Autor
-Alan Pancho
+---
 
-## 🧠 Objetivo
-Crear un sistema que permita generar contraseñas básicas, seguras y personalizadas.
+## 🚀 Funcionalidades
+- Generación de contraseñas básicas
+- Generación de contraseñas seguras
+- Generación personalizada
+- Evaluación de seguridad
+- Historial con fecha
+- Guardado en archivo
 
-## ⚙️ Tecnologías
-- Python
-- Git
+---
+
+## 🛠️ Tecnologías
+- Python 3
 - GitHub
+- VS Code
+
+---
+
+## ▶️ Cómo ejecutar
+```bash
+python src/main.py
