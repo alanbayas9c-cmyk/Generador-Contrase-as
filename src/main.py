@@ -1,172 +1,156 @@
+import tkinter as tk
+from tkinter import messagebox
 import random
 import string
-import os
-from datetime import datetime
 
-# ==============================
-# HISTORIAL
-# ==============================
+
 historial = []
 
-# ==============================
-# LIMPIAR PANTALLA
-# ==============================
 
-def limpiar():
-    os.system("cls" if os.name == "nt" else "clear")
+def generar_contrasena():
 
-# ==============================
-# GENERADORES
-# ==============================
+    caracteres = ""
 
-def generar_basica():
-    return "ABC123"
+    if var_mayus.get():
+        caracteres += string.ascii_uppercase
+    if var_minus.get():
+        caracteres += string.ascii_lowercase
+    if var_num.get():
+        caracteres += string.digits
+    if var_sim.get():
+        caracteres += string.punctuation
 
-def generar_segura():
-    caracteres = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(caracteres) for _ in range(12))
-
-def generar_personalizada(longitud):
-    caracteres = string.ascii_letters + string.digits
-    return ''.join(random.choice(caracteres) for _ in range(longitud))
-
-# ==============================
-# EVALUAR SEGURIDAD
-# ==============================
-
-def evaluar_fortaleza(password):
-    tiene_minuscula = any(c.islower() for c in password)
-    tiene_mayuscula = any(c.isupper() for c in password)
-    tiene_numero = any(c.isdigit() for c in password)
-    tiene_simbolo = any(c in string.punctuation for c in password)
-
-    puntos = sum([tiene_minuscula, tiene_mayuscula, tiene_numero, tiene_simbolo])
-
-    if len(password) < 8:
-        return "❌ Débil"
-    elif puntos == 2:
-        return "⚠️ Media"
-    elif puntos >= 3:
-        return "🔥 Fuerte"
-    else:
-        return "❌ Débil"
-
-# ==============================
-# HISTORIAL
-# ==============================
-
-def ver_historial():
-    if not historial:
-        print("❌ No hay contraseñas aún.")
+    if caracteres == "":
+        messagebox.showwarning("Advertencia", "Selecciona al menos una opción")
         return
 
-    print("\n===== HISTORIAL =====")
-    for i, item in enumerate(historial, 1):
-        print(f"{i}. {item['password']} | {item['fecha']} | {item['seguridad']}")
+    try:
+        longitud = int(entry_longitud.get())
+        if longitud < 1:
+            messagebox.showerror("Error", "La longitud debe ser mayor a 0")
+            return
+    except:
+        messagebox.showerror("Error", "Ingresa un número válido")
+        return
 
-def guardar_archivo():
-    if not os.path.exists("historial"):
-        os.makedirs("historial")
+    password = "".join(random.choice(caracteres) for _ in range(longitud))
 
-    with open("historial/historial.txt", "w") as file:
-        for item in historial:
-            file.write(f"{item['password']} | {item['fecha']} | {item['seguridad']}\n")
+    resultado.delete(0, tk.END)
+    resultado.insert(0, password)
 
-    print("✔ Historial guardado correctamente")
+    historial.append(password)
+    actualizar_historial()
 
-# ==============================
-# GUARDAR CONTRASEÑA
-# ==============================
+    evaluar(password)
 
-def guardar(password):
-    historial.append({
-        "password": password,
-        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "seguridad": evaluar_fortaleza(password)
-    })
 
-# ==============================
-# MENÚ PRINCIPAL
-# ==============================
+def actualizar_historial():
+    lista_historial.delete(0, tk.END)
 
-def menu():
-    while True:
-        limpiar()
+    for i, p in enumerate(historial[-10:], 1):
+        lista_historial.insert(tk.END, f"{i}. {p}")
 
-        print("=========================================")
-        print("      🔐 GENERADOR DE CONTRASEÑAS PRO")
-        print("=========================================")
-        print("1. Generar contraseña básica")
-        print("2. Generar contraseña segura")
-        print("3. Generar contraseña personalizada")
-        print("4. Ver historial")
-        print("5. Guardar historial en archivo")
-        print("6. Salir")
 
-        opcion = input("\nSelecciona una opción: ")
+def limpiar_historial():
+    historial.clear()
+    actualizar_historial()
+    messagebox.showinfo("Historial", "Historial limpiado")
 
-        # ==========================
-        # OPCIÓN 1
-        # ==========================
-        if opcion == "1":
-            password = generar_basica()
-            print("\n🔑 Contraseña:", password)
-            print("🔐 Seguridad:", evaluar_fortaleza(password))
-            guardar(password)
-            input("\nPresiona ENTER para continuar...")
 
-        # ==========================
-        # OPCIÓN 2
-        # ==========================
-        elif opcion == "2":
-            password = generar_segura()
-            print("\n🔑 Contraseña:", password)
-            print("🔐 Seguridad:", evaluar_fortaleza(password))
-            guardar(password)
-            input("\nPresiona ENTER para continuar...")
+def evaluar(password):
 
-        # ==========================
-        # OPCIÓN 3
-        # ==========================
-        elif opcion == "3":
-            try:
-                longitud = int(input("Ingresa la longitud: "))
-                password = generar_personalizada(longitud)
-                print("\n🔑 Contraseña:", password)
-                print("🔐 Seguridad:", evaluar_fortaleza(password))
-                guardar(password)
-            except:
-                print("❌ Ingresa un número válido")
+    score = 0
 
-            input("\nPresiona ENTER para continuar...")
+    if len(password) >= 8:
+        score += 1
+    if any(c.isupper() for c in password):
+        score += 1
+    if any(c.islower() for c in password):
+        score += 1
+    if any(c.isdigit() for c in password):
+        score += 1
+    if any(c in string.punctuation for c in password):
+        score += 1
 
-        # ==========================
-        # OPCIÓN 4
-        # ==========================
-        elif opcion == "4":
-            ver_historial()
-            input("\nPresiona ENTER para continuar...")
+    if score <= 2:
+        etiqueta.config(text="Seguridad: Baja")
+    elif score <= 4:
+        etiqueta.config(text="Seguridad: Media")
+    else:
+        etiqueta.config(text="Seguridad: Alta")
 
-        # ==========================
-        # OPCIÓN 5
-        # ==========================
-        elif opcion == "5":
-            guardar_archivo()
-            input("\nPresiona ENTER para continuar...")
 
-        # ==========================
-        # OPCIÓN 6
-        # ==========================
-        elif opcion == "6":
-            print("\n👋 Saliendo del sistema...")
-            break
+def copiar():
 
-        else:
-            print("\n❌ Opción inválida")
-            input("\nPresiona ENTER para continuar...")
+    texto = resultado.get()
 
-# ==============================
-# EJECUTAR PROGRAMA
-# ==============================
+    if texto.strip() == "":
+        messagebox.showwarning("Aviso", "No hay contraseña generada")
+        return
 
-menu()
+    ventana.clipboard_clear()
+    ventana.clipboard_append(texto)
+
+    messagebox.showinfo("Copiado", "Contraseña copiada")
+
+
+# ================= UI =================
+
+ventana = tk.Tk()
+ventana.title("Generador de Contraseñas")
+ventana.geometry("520x600")
+ventana.resizable(False, False)
+
+
+tk.Label(ventana, text="GENERADOR DE CONTRASEÑAS", font=("Arial", 16, "bold")).pack(pady=10)
+
+
+frame = tk.Frame(ventana)
+frame.pack()
+
+
+tk.Label(frame, text="Longitud:").grid(row=0, column=0)
+entry_longitud = tk.Entry(frame, width=10)
+entry_longitud.insert(0, "12")
+entry_longitud.grid(row=0, column=1)
+
+
+var_mayus = tk.BooleanVar(value=True)
+var_minus = tk.BooleanVar(value=True)
+var_num = tk.BooleanVar(value=True)
+var_sim = tk.BooleanVar(value=True)
+
+
+tk.Checkbutton(ventana, text="Mayúsculas", variable=var_mayus).pack()
+tk.Checkbutton(ventana, text="Minúsculas", variable=var_minus).pack()
+tk.Checkbutton(ventana, text="Números", variable=var_num).pack()
+tk.Checkbutton(ventana, text="Símbolos", variable=var_sim).pack()
+
+
+tk.Button(ventana, text="GENERAR CONTRASEÑA", command=generar_contrasena).pack(pady=10)
+
+
+resultado = tk.Entry(ventana, width=40, font=("Arial", 12))
+resultado.pack()
+
+
+etiqueta = tk.Label(ventana, text="Seguridad:")
+etiqueta.pack(pady=5)
+
+
+tk.Button(ventana, text="COPIAR", command=copiar).pack(pady=5)
+
+
+tk.Label(ventana, text="HISTORIAL (últimos 10)").pack()
+
+lista_historial = tk.Listbox(ventana, width=40, height=6)
+lista_historial.pack()
+
+
+tk.Button(ventana, text="LIMPIAR HISTORIAL", command=limpiar_historial).pack(pady=5)
+
+
+tk.Label(ventana, text="Proyecto Integrador", font=("Arial", 8)).pack(side="bottom", pady=10)
+
+
+ventana.mainloop()
